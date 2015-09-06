@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title>snorlax - newznab API search</title>
+
+        <!-- Bootstrap -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/flatly/bootstrap.min.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+            <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+            <![endif]-->
+
+        <style>
+            th {
+                background-color: LightGray;
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body onload="body_load()">
+
+        <!-- Static navbar -->
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <span class="navbar-brand">pynab</span>
+                </div>
+
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="#search">Search</a></li>
+                        <li><a href="#stats">Stats</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="content" id="search">
+                <h1>Search</h1>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="sizing-addon2">
+                                <span class="glyphicon glyphicon-asterisk"></span>
+                            </span>
+                            <label class="sr-only" for="apikey">API key</label>
+                            <input id="apikey" type="text" class="form-control" placeholder="API key..." aria-describedby="sizing-addon2">
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="input-group">
+                            <input id="search_string" type="text" class="form-control" placeholder="Search for...">
+                            <span class="input-group-btn">
+                                <button id='search_all_default' class="btn btn-default" type="button">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-12">
+                    <hr></hr>
+                    <div id="results_table"></div>
+                </div>
+            </div>
+
+            <div class="content" id="stats" hidden="true">
+                <h1>Stats</h1>
+                <div class="col-lg-12">
+                    <hr></hr>
+                    <div id="stats_completion"></div>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <span class="badge" id="total_tv">0</span>
+                            <label for="progress_tv">TV</label>
+                            <div id="progress_tv" class="progress">
+                                <div class="progress-bar progress-bar-success" id="progress_tv_success" role="progressbar" style="width:0%">
+                                    Processed
+                                </div>
+                                <div class="progress-bar progress-bar-danger" id="progress_tv_failed" role="progressbar" style="width:0%">
+                                    Failed
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge" id="total_movies">0</span>
+                            <label for="progress_movies">Movies</label>
+                            <div id="progress_movies" class="progress">
+                                <div class="progress-bar progress-bar-success" id="progress_movies_success" role="progressbar" style="width:0%">
+                                    Processed
+                                </div>
+                                <div class="progress-bar progress-bar-danger" id="progress_movies_failed" role="progressbar" style="width:0%">
+                                    Failed
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge" id="total_nfos">0</span>
+                            <label for="progress_nfos">NFOs</label>
+                            <div id="progress_nfos" class="progress">
+                                <div class="progress-bar progress-bar-success" id="progress_nfos_success" role="progressbar" style="width:0%">
+                                    Processed
+                                </div>
+                                <div class="progress-bar progress-bar-danger" id="progress_nfos_failed" role="progressbar" style="width:0%">
+                                    Failed
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge" id="total_file_info">0</span>
+                            <label for="progress_file_info">File Info</label>
+                            <div id="progress_file_info" class="progress">
+                                <div class="progress-bar progress-bar-success" id="progress_file_info_success" role="progressbar" style="width:0%">
+                                    Processed
+                                </div>
+                                <div class="progress-bar progress-bar-danger" id="progress_file_info_failed" role="progressbar" style="width:0%">
+                                    Failed
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+        <!-- jQuery timeago -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.1/jquery.timeago.min.js"></script>
+        <!-- filesize.js -->
+        <script src="js/filesize.min.js"></script>
+        <!-- jQuery cookie -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
+        <script type="text/javascript">
+            var baseurl = '../api?';
+
+            function body_load () {
+                var cookie_apikey = $.cookie("apikey");
+                if (cookie_apikey) {
+                    $('#apikey').val(cookie_apikey);
+                }
+            }
+
+            function do_search (search_type, search_string) {
+                var params = {
+                    t: search_type,
+                    o: 'json',
+                    limit: 100,
+                    apikey: $('#apikey').val(),
+                    q: search_string };
+
+                if (!params.apikey) {
+                    return;
+                }
+
+                var pynab_url = baseurl + $.param(params);
+
+                $.getJSON(pynab_url, function (data) {
+                    $('#results_table').children('table').remove();
+                    $('#results_table').append('<table class="table table-striped table-bordered text-center">');
+                    var results_table = $('#results_table').children();
+
+                    var header = $('<thead>').appendTo(results_table);
+                    var header_row = $('<tr>').appendTo(header);
+                    header_row.append($('<th>').text('Age'),
+                            $('<th>').text('Title'),
+                            $('<th>').text('Category'),
+                            $('<th>').text('Size'),
+                            $('<th>').text('Download'));
+
+                    $.each(data.rss.channel.item, function (index, element) {
+                        $('<tr>').append(
+                                $('<td>').text(jQuery.timeago(Date.parse(element.pubDate))),
+                                $('<td>').text(element.title),
+                                $('<td>').text(element.category),
+                                $('<td>').text(filesize(element.size)),
+                                $('<td>').html('<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>')
+                                ).appendTo(results_table); 
+                    });
+                    $.cookie("apikey", params.apikey, { expires: 180 });
+                });
+            }
+
+            $(document).ready(function() {
+                var progress_map = {
+                    "TV" : "tv",
+                    "Movies" : "movies",
+                    "NFOs" : "nfos",
+                    "File Info" : "file_info" };
+
+                var params = {
+                    t: 'stats',
+                    o: 'json' };
+
+                var pynab_url = baseurl + $.param(params);
+
+                $.getJSON(pynab_url, function (data) {
+                    $.each(data.stats.totals.total, function (index, element) {
+                        var id_success = 'progress_' + progress_map[element.label] + '_success';
+                        var id_failed = 'progress_' + progress_map[element.label] + '_failed';
+                        var id_total = 'total_' + progress_map[element.label];
+                        var pct_success = Math.round(100 * element.processed/element.total) + '%';
+                        var pct_failed = Math.round(100 * element.failed/element.total) + '%';
+
+                        $('#' + id_success).css('width', pct_success);
+                        $('#' + id_failed).css('width', pct_failed);
+                        document.getElementById(id_success).innerHTML = pct_success;
+                        document.getElementById(id_failed).innerHTML = pct_failed;
+                        document.getElementById(id_total).innerHTML = element.total;
+                    });
+                });
+            });
+
+            /* Handle 'enter' in the search bar. */
+            $('#search_string').keypress(function(e) {
+                if (e.which == 13) {
+                    do_search('search', $('#search_string').val());
+                }
+            });
+
+            /* Search button clicked. */
+            $('#search_all_default').on('click', function(e) {
+                do_search('search', $('#search_string').val());
+            });
+
+            /* navbar handling. */
+            $('.navbar-nav a').on('click', function(e) {
+                e.preventDefault();
+                /* Disable active on all menu items. */
+                $(this).parent().parent().find('.active').removeClass('active');
+                $('.nav').find('.active').removeClass('active');
+                /* Enable active on the current menu. */
+                $(this).parent().addClass('active');
+                /* Hide the previous content. */
+                $('.content').hide();
+                /* Show the current active content. */
+                $($(this).attr('href')).show();
+            });
+
+        </script>
+
+    </body>
+</html>
