@@ -135,6 +135,8 @@
             <div class="content" id="settings" hidden="true">
                 <h1>Settings</h1>
                 <hr>
+                <h2>pynab</h2>
+                <hr>
                 <div class="form-group">
                     <div class="row">
                         <div class="col-lg-3">
@@ -142,6 +144,42 @@
                         </div>
                         <div class="col-lg-9">
                             <input id="apikey" type="text" class="form-control" placeholder="API key...">
+                        </div>
+                    </div>
+                </div>
+                <h2>sabnzbd</h2>
+                <hr>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label for='saburl'>URL</label>
+                        </div>
+                        <div class="col-lg-9">
+                            <input id="saburl" type="text" class="form-control" placeholder="https://sabhost:9090/">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label for='sabapikey'>API Key</label>
+                        </div>
+                        <div class="col-lg-9">
+                            <input id="sabapikey" type="text" class="form-control" placeholder="SAB API Key...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label for='sabuser'>User</label>
+                        </div>
+                        <div class="col-lg-9">
+                            <input id="sabuser" type="text" class="form-control" placeholder="Username">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label for='sabpass'>Pass</label>
+                        </div>
+                        <div class="col-lg-9">
+                            <input id="sabpass" type="password" class="form-control" placeholder="Password">
                         </div>
                     </div>
                 </div>
@@ -163,10 +201,20 @@
             var baseurl = '../api?';
 
             function body_load () {
-                var cookie_apikey = $.cookie("apikey");
-                if (cookie_apikey) {
-                    $('#apikey').val(cookie_apikey);
-                }
+                // Get all the settings fields.
+                $('#settings input').each(function (index) {
+                    // Populate the field from the cookie.
+                    var value = $.cookie($(this).attr('id'));
+                    if (value) {
+                        $(this).val(value);
+                    }
+
+                    // Set a handler so the cookie is updated when the field is.
+                    $(this).change(function () {
+                        $.cookie($(this).attr('id'), $(this).val(), { expires: 180 });
+                    })
+                });
+
                 $('#search_string').focus();
             }
 
@@ -175,7 +223,7 @@
                     t: search_type,
                     o: 'json',
                     limit: 100,
-                    apikey: $('#apikey').val(),
+                    apikey: $.cookie('apikey'),
                     q: search_string };
 
                 if (!params.apikey) {
@@ -198,15 +246,43 @@
                             $('<th>').text('Download'));
 
                     $.each(data.rss.channel.item, function (index, element) {
+                        var links = '<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>';
+                        if ($.cookie('saburl')) {
+                            links += '<a id="sab' + index + '" class="btn btn-default" role="button" href="#"><img src="http://sabnzbd.org/icon/sab2_16.png"></img></a>';
+                        }
+
                         $('<tr>').append(
                                 $('<td>').text(jQuery.timeago(Date.parse(element.pubDate))),
                                 $('<td>').text(element.title),
                                 $('<td>').text(element.category),
                                 $('<td>').text(filesize(element.size)),
-                                $('<td>').html('<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>')
+                                $('<td>').html(links)
                                 ).appendTo(results_table);
+
+                        if ($.cookie('saburl')) {
+                            $('#sab' + index).click(function(){
+                                sab_add(element.link, element.title);
+                            })
+                        }
                     });
-                    $.cookie("apikey", params.apikey, { expires: 180 });
+                });
+            }
+
+            function sab_add (url, name) {
+                $.ajax({
+                    'url'  : $.cookie('saburl'),
+                    'data' : {
+                        'apikey'  : $.cookie('sabapikey'),
+                        'name'    : url,
+                        'nzbname' : name
+                    },
+                    'username' : $.cookie('sabuser'),
+                    'password' : $.cookie('sabpass'),
+                    'dataType' : 'text'
+                }).done(function(data) {
+                    alert(data);
+                }).fail(function(data) {
+                    alert("Error:"+data);
                 });
             }
 
