@@ -289,7 +289,7 @@
                     $.each(data.rss.channel.item, function (index, element) {
                         var links = '<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>';
                         if ($.cookie('saburl')) {
-                            links += '&nbsp;&nbsp;<a id="sab' + index + '" href="#"><img src="http://sabnzbd.org/icon/sab2_16.png"></img></a>';
+                            links += '&nbsp;&nbsp;<a id="sab' + index + '" href="#"><img src="//sabnzbd.org/icon/sab2_16.png"></img></a>';
                         }
 
                         $('<tr>').append(
