@@ -198,7 +198,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
         <script type="text/javascript">
-            var baseurl = '../api?';
+            var baseurl = 'https://snorlax.koh.net.au/pynab/search/../api?';
 
             function body_load () {
                 // Get all the settings fields.
@@ -213,6 +213,17 @@
                     $(this).change(function () {
                         $.cookie($(this).attr('id'), $(this).val(), { expires: 180 });
                     })
+
+                    $(this).keydown(function(e) {
+                        // Enter Key to save.
+                        if (e.which == 13) {
+                            $.cookie($(this).attr('id'), $(this).val(), { expires: 180 });
+                        }
+                        // Escape Key to undo.
+                        if (e.which == 27) {
+                            $(this).val($.cookie($(this).attr('id')));
+                        }
+                    });
                 });
 
                 $('#search_string').focus();
@@ -248,7 +259,7 @@
                     $.each(data.rss.channel.item, function (index, element) {
                         var links = '<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>';
                         if ($.cookie('saburl')) {
-                            links += '<a id="sab' + index + '" class="btn btn-default" role="button" href="#"><img src="http://sabnzbd.org/icon/sab2_16.png"></img></a>';
+                            links += '&nbsp;&nbsp;<a id="sab' + index + '" href="#"><img src="http://sabnzbd.org/icon/sab2_16.png"></img></a>';
                         }
 
                         $('<tr>').append(
@@ -270,19 +281,17 @@
 
             function sab_add (url, name) {
                 $.ajax({
-                    'url'  : $.cookie('saburl'),
-                    'data' : {
+                    'url'    : $.cookie('saburl'),
+                    'method' : 'GET',
+                    'data'   : {
+                        'mode'    : 'addurl',
                         'apikey'  : $.cookie('sabapikey'),
                         'name'    : url,
                         'nzbname' : name
                     },
                     'username' : $.cookie('sabuser'),
                     'password' : $.cookie('sabpass'),
-                    'dataType' : 'text'
-                }).done(function(data) {
-                    alert(data);
-                }).fail(function(data) {
-                    alert("Error:"+data);
+                    'dataType' : 'jsonp', // Use jsonp to get around cors issues.
                 });
             }
 
