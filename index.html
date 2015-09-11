@@ -52,6 +52,12 @@
             </div>
         </nav>
 
+        <div class="row">
+            <div class="col-lg-1"></div>
+            <div id='alert-wrapper' class="col-lg-10"></div>
+            <div class="col-lg-1"></div>
+        </div>
+
         <div class="container-fluid">
             <div class="content" id="search">
                 <h1>Search</h1>
@@ -302,14 +308,22 @@
 
                         if ($.cookie('saburl')) {
                             $('#sab' + index).click(function(){
-                                sab_add(element.link, element.title);
+                                sab_add(index, element.link, element.title);
                             })
                         }
                     });
                 });
             }
 
-            function sab_add (url, name) {
+            function sab_alert (message) {
+                $('#alert-wrapper').append(
+                    '<div class="alert alert-danger" data-dismiss="alert">'+
+                        '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'+
+                        message+
+                    '</div>');
+            }
+
+            function sab_add (index, url, name) {
                 $.ajax({
                     'url'    : $.cookie('saburl'),
                     'method' : 'GET',
@@ -317,11 +331,23 @@
                         'mode'    : 'addurl',
                         'apikey'  : $.cookie('sabapikey'),
                         'name'    : url,
-                        'nzbname' : name
+                        'nzbname' : name,
+                        'output'  : 'json'
                     },
                     'username' : $.cookie('sabuser'),
                     'password' : $.cookie('sabpass'),
                     'dataType' : 'jsonp', // Use jsonp to get around cors issues.
+                }).done(function (r) {
+                    if (r.status) {
+                        // If the queue add worked, replace the link with a green sab logo.
+                        $('#sab' + index).replaceWith('<img src="//sabnzbd.org/icon/nzb/nzb_16.png"></img>');
+                    }
+                    else {
+                        sab_alert('<strong>Sabnzbd Error : </strong>'+r.error+"<br>"+
+                                    '<strong>Error queuing : </strong>'+name);
+                    }
+                }).fail(function (r) {
+                    sab_alert('<strong>Error</strong> connecting to sabnzbd');
                 });
             }
 
