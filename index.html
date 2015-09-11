@@ -204,7 +204,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
         <style>
-          .fa-spin-custom, .glyphicon-spin {
+          .glyphicon-spin {
             -webkit-animation: spin 1000ms infinite linear;
             animation: spin 1000ms infinite linear;
           }
@@ -307,12 +307,16 @@
                                 ).appendTo(results_table);
 
                         if ($.cookie('saburl')) {
-                            $('#sab' + index).click(function(){
-                                sab_add(index, element.link, element.title);
-                            })
+                            sab_init_link(index, element.link, element.title);
                         }
                     });
                 });
+            }
+
+            function sab_init_link(index, url, name) {
+                $('#sab' + index).click(function(){
+                    sab_add(index, url, name);
+                })
             }
 
             function sab_alert (message) {
@@ -324,6 +328,10 @@
             }
 
             function sab_add (index, url, name) {
+                var orig = $('#sab' + index).clone();
+
+                $('#sab' + index).replaceWith('<span id="sabspinner' + index + '" class="glyphicon glyphicon-refresh glyphicon-spin"></span>');
+
                 $.ajax({
                     'url'    : $.cookie('saburl'),
                     'method' : 'GET',
@@ -337,17 +345,23 @@
                     'username' : $.cookie('sabuser'),
                     'password' : $.cookie('sabpass'),
                     'dataType' : 'jsonp', // Use jsonp to get around cors issues.
+                    'timeout'  : 5000,  // Give the jsonp 5 seconds to return (only way to do jsonp error handling)
                 }).done(function (r) {
                     if (r.status) {
                         // If the queue add worked, replace the link with a green sab logo.
-                        $('#sab' + index).replaceWith('<img src="//sabnzbd.org/icon/nzb/nzb_16.png"></img>');
+                        $('#sabspinner' + index).replaceWith('<img src="//sabnzbd.org/icon/nzb/nzb_16.png"></img>');
                     }
                     else {
+                        $('#sabspinner' + index).replaceWith(orig);
+                        sab_init_link(index, url, name);
                         sab_alert('<strong>Sabnzbd Error : </strong>'+r.error+"<br>"+
                                     '<strong>Error queuing : </strong>'+name);
                     }
-                }).fail(function (r) {
-                    sab_alert('<strong>Error</strong> connecting to sabnzbd');
+                }).error(function () {
+                    $('#sabspinner' + index).replaceWith(orig);
+                    sab_init_link(index, url, name);
+                    sab_alert('<strong>Unknown Error : </strong> Check sabnzbd configuration<br>'+
+                                '<strong>Error queuing : </strong>'+name);
                 });
             }
 
