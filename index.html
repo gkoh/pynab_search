@@ -325,10 +325,10 @@
                         if ($.cookie('saburl')) {
                             sab_init_link(index, element.link, element.title);
                         }
-                    }).fail(function (data, status, msg) {
-                        $('#results_table').html('');
-                        pynab_alert("<strong>Error Loading Results</strong>: " + msg);
                     });
+                }).fail(function (data, status, msg) {
+                    $('#results_table').html('');
+                    pynab_alert("<strong>Error Loading Results</strong>: " + msg);
                 });
             }
 
