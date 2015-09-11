@@ -64,7 +64,8 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="input-group">
-                            <input id="search_string" type="text" class="form-control" placeholder="Search for...">
+                            <input id="search_string" type="text" class="form-control" style="width: 80%" placeholder="Search for...">
+                            <select id="search_cat" class="form-control" style="width: 20%" disabled><option value="-1">Loading...</option></select>
                             <span class="input-group-btn">
                                 <button id='search_all_default' class="btn btn-default" type="button">
                                     <span class="glyphicon glyphicon-search"></span>
@@ -259,26 +260,41 @@
                     });
                 });
 
+                populate_search_cats();
                 $('#search_string').focus();
             }
 
-            function do_search (search_type, search_string) {
+            function do_search (search_type, search_string, search_cat) {
                 $('#results_table').html('<div class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-spin"></span></div>');
 
                 var params = {
-                    t: search_type,
-                    o: 'json',
-                    limit: 100,
-                    apikey: $.cookie('apikey'),
-                    q: search_string };
+                    t      : search_type,
+                    o      : 'json',
+                    limit  : 100,
+                    apikey : $.cookie('apikey'),
+                    q      : search_string,
+                };
+
+                if (search_cat > 0) {
+                    params['cat'] = search_cat;
+                }
 
                 if (!params.apikey) {
+                    pynab_alert("No API Key Specified");
                     return;
                 }
 
                 var pynab_url = baseurl + $.param(params);
 
                 $.getJSON(pynab_url, function (data) {
+                    // Check for an error from pynab.
+                    if (data.error) {
+                        $('#results_table').html('');
+                        pynab_alert("<strong>Error Loading Results</strong>: " + data.error.description);
+                        return;
+                    }
+
+
                     $('#results_table').html('');
                     $('#results_table').children('table').remove();
                     $('#results_table').append('<table class="table table-striped table-bordered text-center">');
@@ -309,6 +325,9 @@
                         if ($.cookie('saburl')) {
                             sab_init_link(index, element.link, element.title);
                         }
+                    }).fail(function (data, status, msg) {
+                        $('#results_table').html('');
+                        pynab_alert("<strong>Error Loading Results</strong>: " + msg);
                     });
                 });
             }
@@ -319,7 +338,7 @@
                 })
             }
 
-            function sab_alert (message) {
+            function pynab_alert (message) {
                 $('#alert-wrapper').append(
                     '<div class="alert alert-danger" data-dismiss="alert">'+
                         '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'+
@@ -354,22 +373,46 @@
                     else {
                         $('#sabspinner' + index).replaceWith(orig);
                         sab_init_link(index, url, name);
-                        sab_alert('<strong>Sabnzbd Error : </strong>'+r.error+"<br>"+
+                        pynab_alert('<strong>Sabnzbd Error : </strong>'+r.error+"<br>"+
                                     '<strong>Error queuing : </strong>'+name);
                     }
-                }).error(function () {
+                }).fail(function (data, status, msg) {
                     $('#sabspinner' + index).replaceWith(orig);
                     sab_init_link(index, url, name);
-                    sab_alert('<strong>Unknown Error : </strong> Check sabnzbd configuration<br>'+
+                    pynab_alert('<strong>Unknown Error : </strong> Check sabnzbd configuration<br>'+
                                 '<strong>Error queuing : </strong>'+name);
+                });
+            }
+
+            function populate_search_cats () {
+                var params = {
+                    'o' : 'json',
+                    't' : 'caps'
+                };
+
+                var cats_url = baseurl + $.param(params);
+
+                $.getJSON(cats_url, function (data) {
+                    $('#search_cat').prop('disabled', false);
+                    $('#search_cat').html('<option value="-1")>All</option>');
+
+                    $.each(data.caps.categories.category, function (index, cat) {
+                        $('#search_cat').append('<option value="' + cat.id + '">' + cat.name + '</option>');
+
+                        $.each(cat.subcat, function (index, subcat) {
+                            $('#search_cat').append('<option value="' + subcat.id + '">' + cat.name + ' > ' + subcat.name + '</option>');
+                        });
+                    });
+                }).fail(function (data, status, msg) {
+                    pynab_alert("<strong>Error Loading Categories</strong>: " + msg);
                 });
             }
 
             $(document).ready(function() {
                 var progress_map = {
-                    "TV" : "tv",
-                    "Movies" : "movies",
-                    "NFOs" : "nfos",
+                    "TV"        : "tv",
+                    "Movies"    : "movies",
+                    "NFOs"      : "nfos",
                     "File Info" : "file_info" };
 
                 var params = {
@@ -392,19 +435,21 @@
                         document.getElementById(id_failed).innerHTML = pct_failed;
                         document.getElementById(id_total).innerHTML = element.total;
                     });
+                }).fail(function (data, status, msg) {
+                    pynab_alert("<strong>Error Loading Stats</strong>: " + msg);
                 });
             });
 
             /* Handle 'enter' in the search bar. */
             $('#search_string').keypress(function(e) {
                 if (e.which == 13) {
-                    do_search('search', $('#search_string').val());
+                    do_search('search', $('#search_string').val(), $('#search_cat').val());
                 }
             });
 
             /* Search button clicked. */
             $('#search_all_default').on('click', function(e) {
-                do_search('search', $('#search_string').val());
+                do_search('search', $('#search_string').val(), $('#search_cat').val());
             });
 
             /* navbar handling. */
