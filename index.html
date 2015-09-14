@@ -154,7 +154,14 @@
                         </div>
                     </div>
                 </div>
-                <h2>sabnzbd</h2>
+                    <div class="row">
+                        <div class="col-lg-1">
+                            <h2>sabnzbd</h2>
+                        </div>
+                        <div class="col-lg-11 text-left" style="padding-top: 30px;">
+                            <span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>
+                        </div>
+                    </div>
                 <hr>
                 <div class="form-group">
                     <div class="row">
@@ -245,13 +252,13 @@
 
                     // Set a handler so the cookie is updated when the field is.
                     $(this).change(function () {
-                        $.cookie($(this).attr('id'), $(this).val(), { expires: 180 });
+                        save_setting($(this).attr('id'), $(this).val());
                     })
 
                     $(this).keydown(function(e) {
                         // Enter Key to save.
                         if (e.which == 13) {
-                            $.cookie($(this).attr('id'), $(this).val(), { expires: 180 });
+                            save_setting($(this).attr('id'), $(this).val());
                         }
                         // Escape Key to undo.
                         if (e.which == 27) {
@@ -261,7 +268,15 @@
                 });
 
                 populate_search_cats();
+                sab_test();
                 $('#search_string').focus();
+            }
+
+            function save_setting (attr, value) {
+              $.cookie(attr, value, { expires: 180 });
+              if (attr.match(/^sab/)) {
+                sab_test();
+              }
             }
 
             function do_search (search_type, search_string, search_cat) {
@@ -381,6 +396,39 @@
                     sab_init_link(index, url, name);
                     pynab_alert('<strong>Unknown Error : </strong> Check sabnzbd configuration<br>'+
                                 '<strong>Error queuing : </strong>'+name);
+                });
+            }
+
+            function sab_test () {
+                if (!$.cookie('saburl') || !$.cookie('sabapikey')) {
+                    $('#sabstatus').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>');
+                    return;
+                }
+
+                $('#sabstatus').replaceWith('<span id="sabstatusspinner" class="glyphicon glyphicon-refresh glyphicon-spin"></span>');
+
+                $.ajax({
+                    'url'    : $.cookie('saburl'),
+                    'method' : 'GET',
+                    'data'   : {
+                        'mode'    : 'get_config',
+                        'section' : 'servers',
+                        'apikey'  : $.cookie('sabapikey'),
+                        'output'  : 'json'
+                    },
+                    'username' : $.cookie('sabuser'),
+                    'password' : $.cookie('sabpass'),
+                    'dataType' : 'jsonp', // Use jsonp to get around cors issues.
+                    'timeout'  : 5000,  // Give the jsonp 5 seconds to return (only way to do jsonp error handling)
+                }).done(function (r) {
+                    if (r.config) {
+                        $('#sabstatusspinner').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-ok text-success"></span>');
+                    }
+                    else {
+                        $('#sabstatusspinner').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>');
+                    }
+                }).fail(function (data, status, msg) {
+                    $('#sabstatusspinner').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>');
                 });
             }
 
