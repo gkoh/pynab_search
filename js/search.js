@@ -104,6 +104,18 @@ function do_scroll () {
     }
 }
 
+function search_enable() {
+  $('#search_string').prop('disabled', false);
+  $('#search_all_default').prop('disabled', false);
+  $('#search_cat').prop('disabled', false);
+}
+
+function search_disable() {
+  $('#search_string').prop('disabled', true);
+  $('#search_all_default').prop('disabled', true);
+  $('#search_cat').prop('disabled', true);
+}
+
 $(document).ready(function() {
 
     /* Handle 'enter' in the search bar. */
