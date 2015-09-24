@@ -9,6 +9,7 @@
 
         <!-- Bootstrap -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/flatly/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="css/bootstrap-glyphicon-spin.css">
 
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,7 +26,7 @@
         </style>
     </head>
 
-    <body onload="body_load()">
+    <body>
 
         <!-- Static navbar -->
         <nav class="navbar navbar-default">
@@ -61,6 +62,8 @@
         <div class="container-fluid">
             <div class="content" id="search">
                 <h1>Search</h1>
+
+                <!-- Search input -->
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="input-group">
@@ -74,17 +77,20 @@
                         </div>
                     </div>
                 </div>
+                <!-- Search input -->
 
+                <hr>
                 <div class="col-lg-12">
-                    <hr></hr>
                     <div id="results_table"></div>
                 </div>
             </div>
 
             <div class="content" id="stats" hidden="true">
                 <h1>Stats</h1>
+                <hr>
+
+                <!-- Stats -->
                 <div class="col-lg-12">
-                    <hr></hr>
                     <div id="stats_completion"></div>
                     <ul class="list-group">
                         <li class="list-group-item">
@@ -137,11 +143,15 @@
                         </li>
                     </ul>
                 </div>
+                <!-- Stats -->
+
             </div>
 
             <div class="content" id="settings" hidden="true">
                 <h1>Settings</h1>
                 <hr>
+
+                <!-- PyNab Settings -->
                 <h2>pynab</h2>
                 <hr>
                 <div class="form-group">
@@ -154,14 +164,17 @@
                         </div>
                     </div>
                 </div>
-                    <div class="row">
-                        <div class="col-lg-1">
-                            <h2>sabnzbd</h2>
-                        </div>
-                        <div class="col-lg-11 text-left" style="padding-top: 30px;">
-                            <span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>
-                        </div>
+                <!-- PyNab Settings -->
+
+                <!-- Sabnzbd Settings -->
+                <div class="row">
+                    <div class="col-lg-1">
+                        <h2>sabnzbd</h2>
                     </div>
+                    <div class="col-lg-11 text-left" style="padding-top: 30px;">
+                        <span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>
+                    </div>
+                </div>
                 <hr>
                 <div class="form-group">
                     <div class="row">
@@ -169,7 +182,7 @@
                             <label for='saburl'>API URL</label>
                         </div>
                         <div class="col-lg-9">
-                            <input id="saburl" type="text" class="form-control" placeholder="https://sabhost:9090/api">
+                            <input id="saburl" type="text" class="form-control" placeholder="https://sabhost:9090/api" data-setting-cb="sab_test">
                         </div>
                     </div>
                     <div class="row">
@@ -177,7 +190,7 @@
                             <label for='sabapikey'>API Key</label>
                         </div>
                         <div class="col-lg-9">
-                            <input id="sabapikey" type="text" class="form-control" placeholder="SAB API Key...">
+                            <input id="sabapikey" type="text" class="form-control" placeholder="SAB API Key..." data-setting-cb="sab_test">
                         </div>
                     </div>
                     <div class="row">
@@ -185,7 +198,7 @@
                             <label for='sabuser'>Username</label>
                         </div>
                         <div class="col-lg-9">
-                            <input id="sabuser" type="text" class="form-control" placeholder="Username (optional)">
+                            <input id="sabuser" type="text" class="form-control" placeholder="Username (optional)" data-setting-cb="sab_test">
                         </div>
                     </div>
                     <div class="row">
@@ -193,10 +206,12 @@
                             <label for='sabpass'>Password</label>
                         </div>
                         <div class="col-lg-9">
-                            <input id="sabpass" type="password" class="form-control" placeholder="Password (optional)">
+                            <input id="sabpass" type="password" class="form-control" placeholder="Password (optional)" data-setting-cb="sab_test">
                         </div>
                     </div>
                 </div>
+                <!-- Sabnzbd Settings -->
+
             </div>
         </div>
 
@@ -211,314 +226,11 @@
         <!-- jQuery cookie -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
-        <style>
-          .glyphicon-spin {
-            -webkit-animation: spin 1000ms infinite linear;
-            animation: spin 1000ms infinite linear;
-          }
-          @-webkit-keyframes spin {
-            0% {
-              -webkit-transform: rotate(0deg);
-              transform: rotate(0deg);
-            }
-            100% {
-              -webkit-transform: rotate(359deg);
-              transform: rotate(359deg);
-            }
-          }
-          @keyframes spin {
-            0% {
-              -webkit-transform: rotate(0deg);
-              transform: rotate(0deg);
-            }
-            100% {
-              -webkit-transform: rotate(359deg);
-              transform: rotate(359deg);
-            }
-          }
-        </style>
-
-        <script type="text/javascript">
-            var baseurl = '../api?';
-
-            function body_load () {
-                // Get all the settings fields.
-                $('#settings input').each(function (index) {
-                    // Populate the field from the cookie.
-                    var value = $.cookie($(this).attr('id'));
-                    if (value) {
-                        $(this).val(value);
-                    }
-
-                    // Set a handler so the cookie is updated when the field is.
-                    $(this).change(function () {
-                        save_setting($(this).attr('id'), $(this).val());
-                    })
-
-                    $(this).keydown(function(e) {
-                        // Enter Key to save.
-                        if (e.which == 13) {
-                            save_setting($(this).attr('id'), $(this).val());
-                        }
-                        // Escape Key to undo.
-                        if (e.which == 27) {
-                            $(this).val($.cookie($(this).attr('id')));
-                        }
-                    });
-                });
-
-                populate_search_cats();
-                sab_test();
-                $('#search_string').focus();
-            }
-
-            function save_setting (attr, value) {
-              $.cookie(attr, value, { expires: 180 });
-              if (attr.match(/^sab/)) {
-                sab_test();
-              }
-            }
-
-            function do_search (search_type, search_string, search_cat) {
-                $('#results_table').html('<div class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-spin"></span></div>');
-
-                var params = {
-                    t      : search_type,
-                    o      : 'json',
-                    limit  : 100,
-                    apikey : $.cookie('apikey'),
-                    q      : search_string,
-                };
-
-                if (search_cat > 0) {
-                    params['cat'] = search_cat;
-                }
-
-                if (!params.apikey) {
-                    pynab_alert("No API Key Specified");
-                    return;
-                }
-
-                var pynab_url = baseurl + $.param(params);
-
-                $.getJSON(pynab_url, function (data) {
-                    // Check for an error from pynab.
-                    if (data.error) {
-                        $('#results_table').html('');
-                        pynab_alert("<strong>Error Loading Results</strong>: " + data.error.description);
-                        return;
-                    }
-
-
-                    $('#results_table').html('');
-                    $('#results_table').children('table').remove();
-                    $('#results_table').append('<table class="table table-striped table-bordered text-center">');
-                    var results_table = $('#results_table').children();
-
-                    var header = $('<thead>').appendTo(results_table);
-                    var header_row = $('<tr>').appendTo(header);
-                    header_row.append($('<th>').text('Age'),
-                            $('<th>').text('Title'),
-                            $('<th>').text('Category'),
-                            $('<th>').text('Size'),
-                            $('<th>').text('Download'));
-
-                    $.each(data.rss.channel.item, function (index, element) {
-                        var links = '<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>';
-                        if ($.cookie('saburl')) {
-                            links += '&nbsp;&nbsp;<a id="sab' + index + '" href="#"><img src="//sabnzbd.org/icon/sab2_16.png"></img></a>';
-                        }
-
-                        $('<tr>').append(
-                                $('<td>').text(jQuery.timeago(Date.parse(element.pubDate))),
-                                $('<td>').text(element.title),
-                                $('<td>').text(element.category),
-                                $('<td>').text(filesize(element.size)),
-                                $('<td>').html(links)
-                                ).appendTo(results_table);
-
-                        if ($.cookie('saburl')) {
-                            sab_init_link(index, element.link, element.title);
-                        }
-                    });
-                }).fail(function (data, status, msg) {
-                    $('#results_table').html('');
-                    pynab_alert("<strong>Error Loading Results</strong>: " + msg);
-                });
-            }
-
-            function sab_init_link(index, url, name) {
-                $('#sab' + index).click(function(){
-                    sab_add(index, url, name);
-                })
-            }
-
-            function pynab_alert (message) {
-                $('#alert-wrapper').append(
-                    '<div class="alert alert-danger" data-dismiss="alert">'+
-                        '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'+
-                        message+
-                    '</div>');
-            }
-
-            function sab_add (index, url, name) {
-                var orig = $('#sab' + index).clone();
-
-                $('#sab' + index).replaceWith('<span id="sabspinner' + index + '" class="glyphicon glyphicon-refresh glyphicon-spin"></span>');
-
-                $.ajax({
-                    'url'    : $.cookie('saburl'),
-                    'method' : 'GET',
-                    'data'   : {
-                        'mode'    : 'addurl',
-                        'apikey'  : $.cookie('sabapikey'),
-                        'name'    : url,
-                        'nzbname' : name,
-                        'output'  : 'json'
-                    },
-                    'username' : $.cookie('sabuser'),
-                    'password' : $.cookie('sabpass'),
-                    'dataType' : 'jsonp', // Use jsonp to get around cors issues.
-                    'timeout'  : 5000,  // Give the jsonp 5 seconds to return (only way to do jsonp error handling)
-                }).done(function (r) {
-                    if (r.status) {
-                        // If the queue add worked, replace the link with a green sab logo.
-                        $('#sabspinner' + index).replaceWith('<img src="//sabnzbd.org/icon/nzb/nzb_16.png"></img>');
-                    }
-                    else {
-                        $('#sabspinner' + index).replaceWith(orig);
-                        sab_init_link(index, url, name);
-                        pynab_alert('<strong>Sabnzbd Error : </strong>'+r.error+"<br>"+
-                                    '<strong>Error queuing : </strong>'+name);
-                    }
-                }).fail(function (data, status, msg) {
-                    $('#sabspinner' + index).replaceWith(orig);
-                    sab_init_link(index, url, name);
-                    pynab_alert('<strong>Unknown Error : </strong> Check sabnzbd configuration<br>'+
-                                '<strong>Error queuing : </strong>'+name);
-                });
-            }
-
-            function sab_test () {
-                if (!$.cookie('saburl') || !$.cookie('sabapikey')) {
-                    $('#sabstatus').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>');
-                    return;
-                }
-
-                $('#sabstatus').replaceWith('<span id="sabstatusspinner" class="glyphicon glyphicon-refresh glyphicon-spin"></span>');
-
-                $.ajax({
-                    'url'    : $.cookie('saburl'),
-                    'method' : 'GET',
-                    'data'   : {
-                        'mode'    : 'get_config',
-                        'section' : 'servers',
-                        'apikey'  : $.cookie('sabapikey'),
-                        'output'  : 'json'
-                    },
-                    'username' : $.cookie('sabuser'),
-                    'password' : $.cookie('sabpass'),
-                    'dataType' : 'jsonp', // Use jsonp to get around cors issues.
-                    'timeout'  : 5000,  // Give the jsonp 5 seconds to return (only way to do jsonp error handling)
-                }).done(function (r) {
-                    if (r.config) {
-                        $('#sabstatusspinner').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-ok text-success"></span>');
-                    }
-                    else {
-                        $('#sabstatusspinner').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>');
-                    }
-                }).fail(function (data, status, msg) {
-                    $('#sabstatusspinner').replaceWith('<span id="sabstatus" class="glyphicon glyphicon-remove text-danger"></span>');
-                });
-            }
-
-            function populate_search_cats () {
-                var params = {
-                    'o' : 'json',
-                    't' : 'caps'
-                };
-
-                var cats_url = baseurl + $.param(params);
-
-                $.getJSON(cats_url, function (data) {
-                    $('#search_cat').prop('disabled', false);
-                    $('#search_cat').html('<option value="-1")>All</option>');
-
-                    $.each(data.caps.categories.category, function (index, cat) {
-                        $('#search_cat').append('<option value="' + cat.id + '">' + cat.name + '</option>');
-
-                        $.each(cat.subcat, function (index, subcat) {
-                            $('#search_cat').append('<option value="' + subcat.id + '">' + cat.name + ' > ' + subcat.name + '</option>');
-                        });
-                    });
-                }).fail(function (data, status, msg) {
-                    pynab_alert("<strong>Error Loading Categories</strong>: " + msg);
-                });
-            }
-
-            $(document).ready(function() {
-                var progress_map = {
-                    "TV"        : "tv",
-                    "Movies"    : "movies",
-                    "NFOs"      : "nfos",
-                    "File Info" : "file_info" };
-
-                var params = {
-                    t: 'stats',
-                    o: 'json' };
-
-                var pynab_url = baseurl + $.param(params);
-
-                $.getJSON(pynab_url, function (data) {
-                    $.each(data.stats.totals.total, function (index, element) {
-                        var id_success = 'progress_' + progress_map[element.label] + '_success';
-                        var id_failed = 'progress_' + progress_map[element.label] + '_failed';
-                        var id_total = 'total_' + progress_map[element.label];
-                        var pct_success = Math.round(100 * element.processed/element.total) + '%';
-                        var pct_failed = Math.round(100 * element.failed/element.total) + '%';
-
-                        $('#' + id_success).css('width', pct_success);
-                        $('#' + id_failed).css('width', pct_failed);
-                        document.getElementById(id_success).innerHTML = pct_success;
-                        document.getElementById(id_failed).innerHTML = pct_failed;
-                        document.getElementById(id_total).innerHTML = element.total;
-                    });
-                }).fail(function (data, status, msg) {
-                    pynab_alert("<strong>Error Loading Stats</strong>: " + msg);
-                });
-            });
-
-            /* Handle 'enter' in the search bar. */
-            $('#search_string').keypress(function(e) {
-                if (e.which == 13) {
-                    do_search('search', $('#search_string').val(), $('#search_cat').val());
-                }
-            });
-
-            /* Search button clicked. */
-            $('#search_all_default').on('click', function(e) {
-                do_search('search', $('#search_string').val(), $('#search_cat').val());
-            });
-
-            /* navbar handling. */
-            $('.navbar-nav a').on('click', function(e) {
-                e.preventDefault();
-                /* Disable active on all menu items. */
-                $(this).parent().parent().find('.active').removeClass('active');
-                $('.nav').find('.active').removeClass('active');
-                /* Enable active on the current menu. */
-                $(this).parent().addClass('active');
-                /* Hide the previous content. */
-                $('.content').hide();
-                /* Show the current active content. */
-                $($(this).attr('href')).show();
-
-                if ($(this).attr('href') == '#search') {
-                    $('#search_string').focus();
-                }
-            });
-
-        </script>
-
+        <script src="js/common.js"></script>
+        <script src="js/cats.js"></script>
+        <script src="js/search.js"></script>
+        <script src="js/stats.js"></script>
+        <script src="js/settings.js"></script>
+        <script src="js/sabnzbd.js"></script>
     </body>
 </html>
