@@ -39,6 +39,10 @@ function result_table_populate(search_type, search_string, search_cat, search_of
     last_search = null;
 
     $('#results_spinner').html('<div class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-spin"></span></div>');
+    // If it's a new table populate the table headers.
+    if (search_offset == 0) {
+        $('#results_table').html('');
+    }
 
     var params = {
         t      : search_type,
