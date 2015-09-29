@@ -23,10 +23,10 @@ function result_table_append (list, offset) {
         links += sab_link_get_html(index + offset);
 
         $('<tr>').append(
-                $('<td>').text(jQuery.timeago(Date.parse(element.pubDate))),
+                $('<td>').text(jQuery.timeago(Date.parse(element.posted))),
                 $('<td>').text(element.title),
                 $('<td>').text(element.category),
-                $('<td>').text(filesize(element.size)),
+                $('<td>').text(element.size ? filesize(element.size) : 'Unknown'),
                 $('<td>').html(links)
                 ).appendTo(results_table);
 
