@@ -18,6 +18,9 @@ function result_table_init () {
 function result_table_append (list, offset) {
     var results_table = $('#results_table').children();
 
+    if (!jQuery.isArray(list))
+        list = [list];
+
     $.each(list, function (index, element) {
         var links = '<a href="' + element.link + '"><span class="glyphicon glyphicon-download"></span></a>';
         links += sab_link_get_html(index + offset);
