@@ -8,7 +8,9 @@ function result_table_init () {
 
     var header = $('<thead>').appendTo(results_table);
     var header_row = $('<tr>').appendTo(header);
-    header_row.append($('<th>').text('Age'),
+    header_row.append(
+            $('<th>').text('Posted'),
+            $('<th>').text('Published'),
             $('<th>').text('Title'),
             $('<th>').text('Category'),
             $('<th>').text('Size'),
@@ -27,6 +29,7 @@ function result_table_append (list, offset) {
 
         $('<tr>').append(
                 $('<td>').text(jQuery.timeago(Date.parse(element.posted))),
+                $('<td>').text(jQuery.timeago(Date.parse(element.pubDate))),
                 $('<td>').text(element.title),
                 $('<td>').text(element.category),
                 $('<td>').text(element.size ? filesize(element.size) : 'Unknown'),
