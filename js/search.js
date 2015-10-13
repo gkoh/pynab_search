@@ -161,5 +161,12 @@ $(document).ready(function() {
             do_scroll();
         }
     });
+
+    // Check the query string for a search term.
+    var query = $.parseParams(window.location.search).q;
+    if (query) {
+         $('#search_string').val(query);
+         do_search('search', $('#search_string').val(), $('#search_cat').val());
+    }
 });
 
