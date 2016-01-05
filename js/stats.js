@@ -26,6 +26,20 @@ $(document).ready(function() {
             document.getElementById(id_failed).innerHTML = pct_failed;
             document.getElementById(id_total).innerHTML = element.total;
         });
+        $.each(data.stats.categories.category, function (index, element) {
+            $('#stats_category_list').append(
+                '<li class="list-group-item">' +
+                     '<span class="badge">' + element.value + '</span>' +
+                      element.label +
+                '</li>');
+        });
+        $.each(data.stats.groups.group, function (index, element) {
+            $('#stats_groups_list').append(
+                '<li class="list-group-item">' +
+                     '<span class="badge">' + element.value + '</span>' +
+                      element.label +
+                '</li>');
+        });
     }).fail(function (data, status, msg) {
         pynab_alert("<strong>Error Loading Stats</strong>: " + msg);
     });
