@@ -14,6 +14,7 @@ function result_table_init () {
             $('<th>').text('Title'),
             $('<th>').text('Category'),
             $('<th>').text('Size'),
+            $('<th>').text('Group'),
             $('<th>').text('Download'));
 }
 
@@ -33,6 +34,7 @@ function result_table_append (list, offset) {
                 $('<td>').text(element.title),
                 $('<td>').text(element.category),
                 $('<td>').text(element.size ? filesize(element.size) : 'Unknown'),
+                $('<td>').text(element.group),
                 $('<td>').html(links)
                 ).appendTo(results_table);
 
