@@ -1,5 +1,5 @@
 function save_setting (input) {
-    $.cookie(input.attr('id'), input.val(), { expires: 180 });
+    $.cookie(input.attr('id'), input.val(), { expires: 3650 });
     if (input.attr('data-setting-cb')) {
       var cb_func = new Function(input.attr('data-setting-cb')+'();');
       cb_func(input);

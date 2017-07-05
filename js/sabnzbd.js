@@ -7,15 +7,16 @@ $(document).ready(function() {
 
 function sab_link_get_html(index) {
     if (sab_ok) {
-        return '&nbsp;&nbsp;<a id="sab' + index + '" href="#"><img src="//sabnzbd.org/icon/sab2_16.png"></img></a>';
+        return '&nbsp;&nbsp;<a id="sab' + index + '" href="#"><img src="/pynab/search/icon/sab2_16.png"></img></a>';
     }
     return '';
 }
 
 function sab_link_init(index, url, name) {
     if (sab_ok) {
-        $('#sab' + index).click(function(){
+        $('#sab' + index).click(function(evt){
             sab_add(index, url, name);
+            evt.preventDefault();
         })
     }
 }
@@ -46,7 +47,7 @@ function sab_add (index, url, name) {
     }).done(function (r) {
         if (r.status) {
             // If the queue add worked, replace the link with a green sab logo.
-            $('#sabspinner' + index).replaceWith('<img src="//sabnzbd.org/icon/nzb/nzb_16.png"></img>');
+            $('#sabspinner' + index).replaceWith('<img src="/pynab/search/icon/nzb-16-green.png"></img>');
         }
         else {
             $('#sabspinner' + index).replaceWith(orig);
